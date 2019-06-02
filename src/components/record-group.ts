@@ -1,5 +1,5 @@
 import { htm } from "@zeit/integration-utils";
-import { distanceInWordsStrict } from 'date-fns'
+import { distanceInWordsStrict } from "date-fns";
 
 import Table, { TableCell } from "../components/table";
 import Icon from "../components/icon";
@@ -18,7 +18,7 @@ const createEntry = (definition: RecordType): Object => {
   return definition.columns.reduce((prev, { key, type, values }) => {
     return {
       ...prev,
-      value: '',
+      value: "",
       [key]: type === "select" && values ? values[0] : ""
     };
   }, {});
@@ -26,22 +26,25 @@ const createEntry = (definition: RecordType): Object => {
 
 const timeAgo = (value?: string) =>
   value
-   ? htm`<${Small}>${distanceInWordsStrict(new Date(value), new Date())} ago</${Small}>`
-   : '—'
+    ? htm`<${Small}>${distanceInWordsStrict(
+        new Date(value),
+        new Date()
+      )} ago</${Small}>`
+    : "";
 
-
-const RecordGroup = ({ definition, records, parentAction }: RecordGroupProps) => {
-  records = [
-    ...(records || []),
-    createEntry(definition) as DNSRecord
-  ];
+const RecordGroup = ({
+  definition,
+  records,
+  parentAction
+}: RecordGroupProps) => {
+  records = [...(records || []), createEntry(definition) as DNSRecord];
 
   const columns = [
-    'Name',
+    "Name",
     ...definition.columns.map(column => column.label),
-    'Created',
-    'Updated',
-    'Action'
+    "Created At",
+    "Created By",
+    "Actions"
   ];
 
   return htm`
@@ -55,12 +58,13 @@ const RecordGroup = ({ definition, records, parentAction }: RecordGroupProps) =>
           ${(record: Record<string, any>) => {
             return htm`
               <${TableCell}>
-                ${record.id
-                  ? record.name
-                  : htm`
+                ${
+                  record.id
+                    ? record.name
+                    : htm`
                       <Input
                         name=${definition.type + ".name"}
-                        value=${record.name || ''}
+                        value=${record.name || ""}
                         width="100%"
                       />`
                 }
@@ -68,8 +72,9 @@ const RecordGroup = ({ definition, records, parentAction }: RecordGroupProps) =>
 
               ${definition.columns.map((column, index) => {
                 const value = record[column.key];
-                const name = definition.type + "." + column.key + "." + index
-                let children = record && column.getValue ? column.getValue(record) : value;
+                const name = definition.type + "." + column.key + "." + index;
+                let children =
+                  record && column.getValue ? column.getValue(record) : value;
 
                 if (!record.id) {
                   switch (column.type) {
@@ -86,9 +91,11 @@ const RecordGroup = ({ definition, records, parentAction }: RecordGroupProps) =>
                     case "select":
                       children = htm`
                         <Select name=${name} value=${value}>
-                          ${(column.values as Array<string>).map(opt => htm`
+                          ${(column.values as Array<string>).map(
+                            opt => htm`
                             <Option value=${opt} caption=${opt} />
-                          `)}
+                          `
+                          )}
                         </Select>
                       `;
                   }
@@ -102,21 +109,27 @@ const RecordGroup = ({ definition, records, parentAction }: RecordGroupProps) =>
               })}
 
               <${TableCell}>
-                ${timeAgo(record.created)}
+                ${record.creator === "system" ? "—" : timeAgo(record.created)}
               </${TableCell}>
 
               <${TableCell}>
-                ${timeAgo(record.updated)}
+                ${record.id
+                    ? htm`
+                        <${Small}>${record.creator === "system" ? "SYSTEM" : "USER"}</${Small}>
+                      `
+                    : ''
+                }
               </${TableCell}>
 
               <${TableCell} width="50px" textAlign="center">
-                ${record.id
-                  ? htm`
+                ${
+                  record.id
+                    ? htm`
                       <Link action=${parentAction + "#remove:" + record.id}>
                         <${Icon} icon="cross" fill="#eb5757" />
                       </Link>
                     `
-                  : ''
+                    : ""
                 }
               </${TableCell}>
             `;

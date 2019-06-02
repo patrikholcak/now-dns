@@ -8,9 +8,10 @@ export interface RecordType {
     key: string;
     type: "text" | "input" | "select";
     values?: string[];
-    getValue?: Function;
     columnProps?: Object;
+    getValue?: Function;
   }>;
+  parseValue?: (value: string) => Record<string, string>;
 }
 
 export const SUPPORTED_RECORD_TYPES: RecordType[] = [
@@ -99,7 +100,12 @@ export const SUPPORTED_RECORD_TYPES: RecordType[] = [
         type: "input",
         getValue: (record: DNSRecord) => record.value.split(" ")[2]
       }
-    ]
+    ],
+    parseValue: (val: string) => {
+      const [flags, tag, value] = val.split(" ");
+
+      return { flags, tag, value };
+    }
   },
   {
     type: "MX",
@@ -117,7 +123,12 @@ export const SUPPORTED_RECORD_TYPES: RecordType[] = [
         key: "value",
         type: "input"
       }
-    ]
+    ],
+    parseValue: (val: string) => {
+      const [mxPriority, value] = val.split(" ");
+
+      return { mxPriority, value };
+    }
   },
   {
     type: "SRV",
@@ -150,6 +161,11 @@ export const SUPPORTED_RECORD_TYPES: RecordType[] = [
         type: "input",
         getValue: (record: DNSRecord) => record.value.split(" ")[2]
       }
-    ]
+    ],
+    parseValue: (val: string) => {
+      const [priority, weight, port, target] = val.split(" ");
+
+      return { priority, weight, port, target };
+    }
   }
 ];

@@ -1,5 +1,5 @@
 import { ZeitClient, FetchOptions } from "@zeit/integration-utils";
-import request from "request";
+import request from "request-promise-native";
 
 import { Domain, DNSRecord } from "./types";
 
@@ -9,7 +9,7 @@ const useApi = (client: ZeitClient) => {
   const zeitApiRequest = (url: string, options: FetchOptions = {}) =>
     client.fetchAndThrow(url, options);
 
-  const nativeRequest = (url: string, options?: request.CoreOptions) =>
+  const nativeRequest = (url: string, options?: request.RequestPromiseOptions) =>
     request(`https://api.zeit.co${url}`, {
       auth: { bearer: client.options.token },
       ...options

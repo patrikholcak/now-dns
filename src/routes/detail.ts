@@ -3,9 +3,9 @@ import _ from "lodash";
 
 import RecordGroup from "../components/record-group";
 
-import { Domain } from "../types";
+import { Domain, DNSRecord } from "../types";
 import { ApiType } from "../api";
-import { SUPPORTED_RECORD_TYPES } from "../constants";
+import { SUPPORTED_RECORD_TYPES, RecordType } from "../constants";
 
 interface RouteProps {
   domains: Domain[];
@@ -29,7 +29,10 @@ const transform = (source: Record<string, string>) => {
   const flattened = Object.values(result);
 
   return flattened
-    .map(row => ({ ...row, value: row.value.join(" ") }))
+    .map(row => ({
+      ...row,
+      value: row.value.join(" ")
+    }))
     .filter(row => row.value.trim().length && row.value !== " issue ");
 };
 
@@ -37,14 +40,31 @@ const createRecords = async (
   domain: Domain,
   api: ApiType,
   clientState: Record<string, string>
-) => {
+): Promise<DNSRecord[]> => {
   const transformedPayload = transform(clientState);
 
-  await Promise.all(
+  const responses = await Promise.all(
     transformedPayload.map(async record => {
-      await api.createRecord(domain.name, record);
+      const res = await api.createRecord(domain.name, record);
+
+      return res;
     })
   );
+
+  return transformedPayload
+    .map((record, index) => {
+      const definition = SUPPORTED_RECORD_TYPES.find(
+        recordType => recordType.type === record.type
+      ) as RecordType;
+
+      return {
+        ...record,
+        id: responses[index].uid,
+        ...(definition.parseValue ? definition.parseValue(record.value) : {}),
+        created: +new Date()
+      };
+    })
+    .filter(record => record.id);
 };
 
 const getActiveDomain = (domains: Domain[], action: string): Domain =>
@@ -56,18 +76,24 @@ const DomainDetail = async (
   api: ApiType
 ) => {
   const domain = getActiveDomain(domains, payload.action);
+  const { records } = await api.getDomainDNS(domain.name);
+
+  let newRecords: DNSRecord[] = [];
+  let filteredRecords = records;
 
   const [, route = ""] = payload.action.split("#");
+  const [, recordToRemove] = route.split(":");
   if (route.startsWith("remove")) {
-    const [, recordToRemove] = route.split(":");
-
     await api.removeRecord(domain.name, recordToRemove);
+    filteredRecords = filteredRecords.filter(r => r.id !== recordToRemove);
   } else if (route.startsWith("save")) {
-    await createRecords(domain, api, payload.clientState);
+    newRecords = await createRecords(domain, api, payload.clientState);
   }
 
-  const { records } = await api.getDomainDNS(domain.name);
-  const recordGroups = _.groupBy(records, record => record.type);
+  const recordGroups = _.groupBy(
+    [...newRecords, ...filteredRecords],
+    record => record.type
+  );
 
   return htm`
     <Box display="flex" alignItems="center" justifyContent="space-between">
