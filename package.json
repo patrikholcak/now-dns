@@ -1,0 +1,16 @@
+{
+  "name": "zeit-dns-editor",
+  "dependencies": {
+    "@types/async": "^2.4.2",
+    "@types/lodash": "^4.14.133",
+    "@types/request": "^2.48.1",
+    "@zeit/integration-utils": "latest",
+    "async": "^3.0.1",
+    "date-fns": "^1.30.1",
+    "lodash": "^4.17.11",
+    "request": "^2.88.0"
+  },
+  "scripts": {
+    "start": "now dev -p 5005"
+  }
+}
