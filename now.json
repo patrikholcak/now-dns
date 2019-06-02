@@ -4,7 +4,11 @@
   "builds": [{ "src": "src/index.ts", "use": "@now/node" }],
   "alias": ["now-dns.tech"],
   "routes": [
-    { "src": "/", "status": 301, "headers": { "Location": "https://zeit.co/integrations/dns" }}
+    {
+      "src": "/",
+      "status": 301,
+      "headers": { "Location": "https://zeit.co/integrations/dns" }
+    },
     { "src": "/integration", "dest": "src/index.ts" }
   ]
 }
