@@ -2,5 +2,9 @@
   "name": "zeit-dns-editor",
   "version": 2,
   "builds": [{ "src": "src/index.ts", "use": "@now/node" }],
-  "routes": [{ "src": "/", "dest": "src/index.ts" }]
+  "alias": ["now-dns.tech"],
+  "routes": [
+    { "src": "/", "status": 301, "headers": { "Location": "https://example.sh/$1" }}
+    { "src": "/integration", "dest": "src/index.ts" }
+  ]
 }
