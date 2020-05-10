@@ -2,7 +2,6 @@
   "name": "zeit-dns-editor",
   "version": 2,
   "builds": [{ "src": "src/index.ts", "use": "@now/node" }],
-  "alias": ["now-dns.tech"],
   "routes": [
     {
       "src": "/",
