@@ -93,7 +93,7 @@ const DomainDetail = async (
     }
   } catch (error) {
     return htm`
-    <Box display="flex" alignItems="center" justifyContent="space-between">
+    <Box>
       <H1>Encountered an error ${
         route.startsWith("remove") ? "removing" : "creating"
       } the record</H1>
