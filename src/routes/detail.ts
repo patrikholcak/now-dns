@@ -29,11 +29,11 @@ const transform = (source: Record<string, string>) => {
   const flattened = Object.values(result);
 
   return flattened
-    .map(row => ({
+    .map((row) => ({
       ...row,
-      value: row.value.join(" ")
+      value: row.value.join(" "),
     }))
-    .filter(row => row.value.trim().length && row.value !== " issue ");
+    .filter((row) => row.value.trim().length && row.value !== " issue ");
 };
 
 const createRecords = async (
@@ -44,7 +44,7 @@ const createRecords = async (
   const transformedPayload = transform(clientState);
 
   const responses = await Promise.all(
-    transformedPayload.map(async record => {
+    transformedPayload.map(async (record) => {
       const res = await api.createRecord(domain.name, record);
 
       return res;
@@ -54,21 +54,21 @@ const createRecords = async (
   return transformedPayload
     .map((record, index) => {
       const definition = SUPPORTED_RECORD_TYPES.find(
-        recordType => recordType.type === record.type
+        (recordType) => recordType.type === record.type
       ) as RecordType;
 
       return {
         ...record,
         id: responses[index].uid,
         ...(definition.parseValue ? definition.parseValue(record.value) : {}),
-        created: +new Date()
+        created: +new Date(),
       };
     })
-    .filter(record => record.id);
+    .filter((record) => record.id);
 };
 
 const getActiveDomain = (domains: Domain[], action: string): Domain =>
-  domains.find(domain => action.includes(domain.id)) || domains[0];
+  domains.find((domain) => action.includes(domain.id)) || domains[0];
 
 const DomainDetail = async (
   { domains }: RouteProps,
@@ -83,16 +83,29 @@ const DomainDetail = async (
 
   const [, route = ""] = payload.action.split("#");
   const [, recordToRemove] = route.split(":");
-  if (route.startsWith("remove")) {
-    await api.removeRecord(domain.name, recordToRemove);
-    filteredRecords = filteredRecords.filter(r => r.id !== recordToRemove);
-  } else if (route.startsWith("save")) {
-    newRecords = await createRecords(domain, api, payload.clientState);
+
+  try {
+    if (route.startsWith("remove")) {
+      await api.removeRecord(domain.name, recordToRemove);
+      filteredRecords = filteredRecords.filter((r) => r.id !== recordToRemove);
+    } else if (route.startsWith("save")) {
+      newRecords = await createRecords(domain, api, payload.clientState);
+    }
+  } catch (error) {
+    return htm`
+    <Box display="flex" alignItems="center" justifyContent="space-between">
+      <H1>Encountered an error ${
+        route.startsWith("remove") ? "removing" : "creating"
+      } the record</H1>
+      <P>${error.message}</p>
+      <Link action=${domain.id}}>← Try again</Link>
+    </Box>
+    `;
   }
 
   const recordGroups = _.groupBy(
     [...newRecords, ...filteredRecords],
-    record => record.type
+    (record) => record.type
   );
 
   return htm`
@@ -101,7 +114,7 @@ const DomainDetail = async (
       <Link action="view">← Select a domain</Link>
     </Box>
 
-    ${SUPPORTED_RECORD_TYPES.map(definition => {
+    ${SUPPORTED_RECORD_TYPES.map((definition) => {
       return htm`
         <${RecordGroup}
           definition=${definition}
@@ -118,7 +131,7 @@ const DomainDetail = async (
       bottom: "0",
       background: "#fafafa",
       padding: "20px 0",
-      borderTop: "1px solid #eaeaea"
+      borderTop: "1px solid #eaeaea",
     }}>
       <Button action=${domain.id + "#save"}>Save Changes</Button>
     </Box>

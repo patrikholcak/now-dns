@@ -23,7 +23,7 @@ export interface Domain {
 }
 
 export interface DNSRecord {
-  id: string;
+  id?: string;
   slug: string;
   type: string;
   name: string;
