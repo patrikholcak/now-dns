@@ -31,6 +31,7 @@ const transform = (source: Record<string, string>) => {
   return flattened
     .map((row) => ({
       ...row,
+      name: row.name.replace("@", ""),
       value: row.value.join(" "),
     }))
     .filter((row) => row.value.trim().length && row.value !== " issue ");
